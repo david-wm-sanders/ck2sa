@@ -1,2 +1,2 @@
-class Ck2JsonError(Exception):
+class CK2JsonError(Exception):
     pass
