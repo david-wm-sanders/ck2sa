@@ -1,4 +1,10 @@
-"""usage: ck2sa.py <save_name>"""
+"""ck2sa
+
+Usage:
+    ck2sa.py saveprop <save_name>
+    ck2sa.py charhist <save_name>
+"""
+import csv
 import sys
 from pathlib import Path
 
@@ -29,18 +35,19 @@ if __name__ == '__main__':
         ck2save = CK2Save(ck2json_exe_p, ck2_save_path)
     except CK2JsonError as e:
         print(e)
-        sys.exit()
+        sys.exit(2)
 
-    # Output some stats
-    print(f"{len(ck2save._keys)} keys: {ck2save._keys}")
-
-    print(f"Game version: {ck2save.version}")
-
-    print(f"Start date: {ck2save.start_date}")
-    print(f"Current date: {ck2save.date}")
-    print(f"Time played: {ck2save.time_played} days")
-
-    print(f"Player: [{ck2save.player_id}] {ck2save.player_name} ({ck2save.player_age}yo)")
-    print(f"Realm: {ck2save.player_realm}")
-
-    print(ck2save.player_history)
+    if args["saveprop"]:
+        # print(f"{len(ck2save._keys)} keys: {ck2save._keys}")
+        print(f"Game version: {ck2save.version}")
+        print(f"Start date: {ck2save.start_date}")
+        print(f"Current date: {ck2save.date}")
+        print(f"Time played: {ck2save.time_played} days")
+        print(f"Player: [{ck2save.player_id}] {ck2save.player_name} ({ck2save.player_age}yo)")
+        print(f"Realm: {ck2save.player_realm}")
+    elif args["charhist"]:
+        field_headers = ["name", "title", "ascension_date", "score"]
+        writer = csv.writer(sys.stdout, quoting=csv.QUOTE_NONNUMERIC)
+        writer.writerow(field_headers)
+        for h in ck2save.player_history:
+            writer.writerow([h["name"], h["title"], h["ascension_date"], h["score"]])
