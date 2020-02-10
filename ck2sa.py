@@ -1,16 +1,30 @@
+"""usage: ck2sa.py <save_name>"""
 import sys
 from pathlib import Path
+
+from docopt import docopt
 
 from ck2sa.ck2save import CK2Save
 from ck2sa.exceptions import CK2JsonError
 
 
-script_dir = Path(__file__).parent.resolve()
-ck2json_exe_p = script_dir / "ck2json/target/release/ck2json.exe"
-ck2_save_path = script_dir / "data/Ironman_England.ck2"
+ck2json_exe_p = (Path(__file__).parent / "ck2json/target/release/ck2json.exe").resolve()
+ck2_saves_dir = Path.home() / "Documents/Paradox Interactive/Crusader Kings II/save games"
 
 
 if __name__ == '__main__':
+    # Fail fast if the ck2_saves_dir doesn't exist
+    if not ck2_saves_dir.exists():
+        print(f"Error: no saves directory at '{ck2_saves_dir}'")
+        sys.exit(1)
+
+    args = docopt(__doc__)
+    ck2_save_path = ck2_saves_dir / f"{args['<save_name>']}.ck2"
+    # Fail fast if the constructed ck2_save_path doesn't exist
+    if not ck2_save_path.exists():
+        print(f"Error: no save at '{ck2_save_path}'")
+        sys.exit(1)
+
     try:
         ck2save = CK2Save(ck2json_exe_p, ck2_save_path)
     except CK2JsonError as e:
@@ -29,9 +43,4 @@ if __name__ == '__main__':
     print(f"Player: [{ck2save.player_id}] {ck2save.player_name} ({ck2save.player_age}yo)")
     print(f"Realm: {ck2save.player_realm}")
 
-    # print(f"Character history:\n{ck2save._json['character_history']}")
-    # print()
-    # print(ck2save.player_character)
-    # print()
-    # print(ck2save._json["character"]["33350"])
     print(ck2save.player_history)

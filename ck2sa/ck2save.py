@@ -1,7 +1,10 @@
 import json
 import subprocess
+import tempfile
+import zipfile
 from collections import OrderedDict
 from datetime import date
+from pathlib import Path
 
 from .exceptions import CK2JsonError
 
@@ -23,6 +26,16 @@ class CK2Save:
     def __init__(self, ck2json_exe_p, ck2_save_path):
         self._ck2json_exe_p = ck2json_exe_p
         self._ck2_save_path = ck2_save_path
+
+        # If the save is a compressed zip file, unpack it to a temp directory to make it ck2json compatible
+        if zipfile.is_zipfile(self._ck2_save_path):
+            # Create a temporary directory
+            temp_dir = tempfile.TemporaryDirectory(prefix=f"ck2sa_")
+            # Extract the compressed save into the temporary directory
+            with zipfile.ZipFile(self._ck2_save_path, "r") as zf:
+                zf.extractall(temp_dir.name)
+            # Rebind self._ck2_save_path to the uncompressed save in the temporary directory
+            self._ck2_save_path = Path(temp_dir.name) / self._ck2_save_path.name
 
         try:
             completed_process = subprocess.run([str(self._ck2json_exe_p), str(self._ck2_save_path)],
